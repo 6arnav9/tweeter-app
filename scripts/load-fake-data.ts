@@ -1,6 +1,7 @@
 import { Client } from "pg";
 import { loadEnvConfig } from '@next/env'
 import { faker } from '@faker-js/faker'
+import bcrypt from 'bcrypt';
  
 const projectDir = process.cwd()
 loadEnvConfig(projectDir);
@@ -20,10 +21,12 @@ async function loadFakeData(numUsers: number = 10) {
     
     try {
         await client.query("begin")
+        const saltRounds = 10;
+        const hash = await bcrypt.hash("strings123", saltRounds);
         
         for(let i = 0; i < numUsers; i++) {
             await client.query("insert into public.users (username, password, avatar) values ($1, $2, $3)", 
-                [faker.internet.userName(), 'password', faker.image.avatar()])
+                [faker.internet.userName(), hash, faker.image.avatar()])
             }
         
         const res = await client.query(
